@@ -1,0 +1,2 @@
+# DjangoBlog
+这是一个基于Python,Django开发的博客网站平台，旨在提供给广大Django初学者一个学习django的MVT设计思想
