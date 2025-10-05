@@ -1,0 +1,42 @@
+/* 博客详情页样式 */
+.blog-content {
+    font-size: 1.05rem;
+    line-height: 1.8;
+}
+
+.blog-content p {
+    margin-bottom: 1rem;
+}
+
+.blog-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.blog-content h1, .blog-content h2, .blog-content h3 {
+    margin: 1.5rem 0 1rem;
+    color: #343a40;
+}
+
+.blog-content a {
+    color: #667eea;
+    text-decoration: none;
+    border-bottom: 1px dashed #667eea;
+}
+
+.blog-content a:hover {
+    border-bottom-style: solid;
+}
+
+.reading-progress {
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: width 0.2s ease;
+}
