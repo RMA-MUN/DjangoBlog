@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block title %}
+    {{ blog.title }} - Django博客
+{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'highlight/styles/github-dark.min.css' %}">
+    <script src="{% static 'highlight/highlight.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/blog_detail.css' %}">
+    <script>
+    // 博客详情页脚本
+    document.addEventListener('DOMContentLoaded', function() {
+        // 代码高亮
+        if (typeof hljs !== 'undefined') {
+            hljs.highlightAll();
+        }
+
+        // 阅读进度条
+        window.addEventListener('scroll', function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            const progressBar = document.getElementById("reading-progress");
+            if (progressBar) {
+                progressBar.style.width = scrolled + "%";
+            }
+        });
+    });
+    </script>
+{% endblock %}
+
+{% block main %}
+    <!-- 阅读进度条 -->
+    <div class="reading-progress" id="reading-progress"></div>
+
+    <article class="blog-post">
+        <!-- 博客标题和元信息 -->
+        <div class="mb-6">
+            <div class="flex items-center mb-4">
+                <span class="badge bg-gradient-to-r from-purple-600 to-pink-500 text-white mr-2">
+                    {{ blog.category.name|default:"未分类" }}
+                </span>
+                <time class="text-sm text-muted">{{ blog.create_time|date:'Y年m月d日 H:i' }}</time>
+            </div>
+            
+            <h3 class="display-4 font-bold mb-4">{{ blog.title }}</h3>
+            
+            <div class="d-flex items-center justify-between flex-wrap gap-4 bg-light p-4 rounded-lg">
+                <div class="d-flex items-center">
+
+                    {% if blog.author.userprofile.avatar %}
+                        <img src="{{ blog.author.userprofile.avatar.url }}" alt="{{ blog.author.username }}" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
+                    {% else %}
+                        <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
+                    {% endif %}
+                    <div class="ml-3">
+                        <div class="font-medium">{{ blog.author }}</div>
+                        <div class="text-xs text-muted">作者</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-6">
+                    <div class="text-center">
+                        <div class="font-bold text-gray-700">0</div>
+                        <div class="text-xs text-muted">浏览量</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <hr class="my-6 border-gray-200">
+        
+        <!-- 博客内容 -->
+        <div class="blog-content mb-8">
+            {{ blog.content|safe }}
+        </div>
+        
+        <!-- 文章底部互动 -->
+        <div class="flex justify-between items-center py-4 border-t border-b">
+            <div class="flex space-x-4">
+                <button class="flex items-center space-x-1 text-gray-500 hover:text-pink-500 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
+                    </svg>
+                    <span>点赞</span>
+                </button>
+                
+                <button class="flex items-center space-x-1 text-gray-500 hover:text-pink-500 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share" viewBox="0 0 16 16">
+                        <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.5 2.5 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
+                    </svg>
+                    <span>分享</span>
+                </button>
+            </div>
+            
+            <a href="/" class="btn btn-outline-secondary rounded-full mt-5">返回首页</a>
+        </div>
+        
+        <!-- 作者信息 -->
+        <div class="mt-8 p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
+            <div class="flex items-center">
+                {% if blog.author.userprofile.avatar %}
+                <img src="{{ blog.author.userprofile.avatar.url }}" alt="{{ blog.author.username }}" width="60" height="60" class="d-inline-block align-text-top rounded-circle">
+                {% else %}
+                <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="60" height="60" class="d-inline-block align-text-top rounded-circle">
+                {% endif %}
+                <div class="ml-4">
+                    <h4 class="font-bold">{{ blog.author }}</h4>
+                    <p class="text-sm text-gray-600 mt-1">热爱技术分享的博主</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 评论区 -->
+        <div class="mt-10">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold">评论 ({{ blog.comments.all|length }})</h2>
+            </div>
+            
+            <!-- 评论表单 -->
+            <form action="{% url 'blog:comment_blog' %}" method="post" class="mb-8 p-6 bg-light rounded-xl">
+                {% csrf_token %}
+                <input type="hidden" name="blog_id" value="{{ blog.id }}">
+                
+                <div class="mb-4">
+                    <textarea 
+                        class="form-control" 
+                        id="comment" 
+                        rows="4" 
+                        placeholder="分享你的想法..." 
+                        name="content"
+                        required
+                    ></textarea>
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-warning px-6 py-2 rounded-full">
+                        发表评论
+                    </button>
+                </div>
+            </form>
+            
+            <!-- 评论列表 -->
+            {% if blog.comments.all %}
+                <div class="space-y-4">
+                    {% for comment in blog.comments.all %}
+                        <div class="p-4 border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                            <div class="d-flex justify-between items-start">
+                                <div class="d-flex items-center">
+                                    {% if comment.author.userprofile.avatar %}
+                                    <img src="{{ comment.author.userprofile.avatar.url }}" alt="{{ comment.author.username }}" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
+                                    {% else %}
+                                    <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
+                                    {% endif %}
+                                    <div class="ml-3">
+                                        <div class="font-medium">{{ comment.author }}</div>
+                                        <div class="text-xs text-muted">
+                                            {{ comment.create_time|date:'Y年m月d日 H:i' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 pl-12">
+                                <p>{{ comment.content }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-10">
+                    <div class="mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#ccc" class="bi bi-chat-dots" viewBox="0 0 16 16">
+                            <path d="M5 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                            <path d="m2.165 15.803.02-.004c1.83-.363 2.948-.842 3.468-1.105A9.06 9.06 0 0 0 8 15c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.6a10.437 10.437 0 0 1-.524 2.318l-.003.011a10.722 10.722 0 0 1-.244.637c-.079.186.074.394.273.362a21.682 21.682 0 0 0 .693-.125zm-.8 2.121a11.196 11.196 0 0 1-.24-.637l-.004-.01c-.146-.46-.23-.905-.224-1.404.006-.498.386-1.096 1.09-1.986 2.397-.873 3.684-2.049 4.296-2.684.199-.182.33.085.33.268a10.6 10.6 0 0 1-.194.738.43.43 0 0 0 .085.586c.173.16.447.15.614-.013.328-.204.682-.346 1.005-.454.402-.12.826-.034 1.16.117a3.323 3.323 0 0 1 .865 1.705c.204.62.396 1.207.554 1.747.081.208.135.438.135.678 0 .375-.18.72-.451 1.009a2.096 2.096 0 0 1-1.534.533c-.341 0-.682-.115-1.005-.337a10.97 10.97 0 0 1-4.769-2.209 10.65 10.65 0 0 1-1.216-.384z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-muted mb-2">暂无评论</h3>
+                    <p class="text-sm text-gray-500">成为第一个评论的人吧！</p>
+                </div>
+            {% endif %}
+        </div>
+    </article>
+{% endblock %}

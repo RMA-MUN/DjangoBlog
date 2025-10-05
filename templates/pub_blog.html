@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+{% block title %}
+    发布博客 - 分享你的想法
+{% endblock %}
+{% block head %}
+    <link rel="stylesheet" href="{% static 'wangeditor/style.css' %}">
+    <script src="{% static 'jquery/jquery.js' %}"></script>
+    <script src="{% static 'wangeditor/index.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/pub_blog.css' %}">
+    <script>
+    // 发布博客页面主脚本
+    window.onload = function () {
+        const { createEditor, createToolbar } = window.wangEditor;
+        let editor = null;
+        
+        // 初始化富文本编辑器
+        function initEditor() {
+            const editorConfig = {
+                placeholder: '点击输入博客内容...',
+                onChange() {
+                    // 自动保存到隐藏字段
+                    const html = editor.getHtml();
+                    document.getElementById('content').value = html;
+                },
+                // 配置上传图片的功能
+                MENU_CONF: {
+                    uploadImage: {
+                        server: '/api/upload-image/', // 图片上传接口
+                        timeout: 5000, // 5秒超时
+                        fieldName: 'image',
+                        metaWithUrl: true,
+                        // 自定义上传参数
+                        meta: {
+                            csrfmiddlewaretoken: document.querySelector('input[name="csrfmiddlewaretoken"]').value
+                        },
+                        // 上传成功回调
+                        onSuccess(file, res) {
+                            editor.insertText(' '); // 在图片前插入一个空格
+                            editor.insertImage(res.data.url); // 插入图片
+                            editor.insertText(' '); // 在图片后插入一个空格
+                            return false; // 阻止默认行为
+                        },
+                        // 上传失败回调
+                        onFailed(file, res) {
+                            alert('上传图片失败: ' + (res.msg || '未知错误'));
+                            return false;
+                        }
+                    }
+                }
+            };
+
+            editor = createEditor({
+                selector: '#editor-container',
+                html: '<p><br></p>',
+                config: editorConfig,
+                mode: 'default' // 或 'simple'
+            });
+
+            const toolbarConfig = {
+                // 自定义工具栏配置
+                excludeKeys: [] // 不排除任何按钮
+            };
+
+            const toolbar = createToolbar({
+                editor,
+                selector: '#toolbar-container',
+                config: toolbarConfig,
+                mode: 'default'
+            });
+        }
+        
+        // 创建隐藏的content字段
+        function createHiddenContentField() {
+            const form = document.getElementById('blog-form');
+            // 先检查是否已存在content字段，如果存在则移除
+            const existingContentField = document.getElementById('content');
+            if (existingContentField) {
+                existingContentField.remove();
+            }
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'content';
+            hiddenInput.id = 'content';
+            form.appendChild(hiddenInput);
+        }
+        
+        // 表单提交处理
+        function handleFormSubmit() {
+            const form = document.getElementById('blog-form');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // 验证标题
+                const titleInput = document.querySelector('input[name="title"]');
+                if (!titleInput.value.trim()) {
+                    alert('请输入博客标题');
+                    titleInput.focus();
+                    return;
+                }
+                
+                // 验证内容
+                const content = editor.getHtml();
+                if (!content.trim() || content === '<p><br></p>') {
+                    alert('请输入博客内容');
+                    return;
+                }
+                
+                // 验证分类
+                const categorySelect = document.getElementById('category');
+                if (!categorySelect.value) {
+                    alert('请选择博客分类');
+                    categorySelect.focus();
+                    return;
+                }
+                
+                // 更新隐藏字段的值
+                const contentField = document.getElementById('content');
+                contentField.value = content;
+                
+                // 调试输出，确保隐藏字段被正确设置
+                console.log('Content field value set:', contentField.value.length > 0 ? 'Yes' : 'No');
+                console.log('Content preview:', content.substring(0, 100) + '...');
+                
+                // 显示加载状态
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 发布中...';
+                
+                // 准备表单数据
+                const formData = new FormData(form);
+                
+                // 调试表单数据
+                console.log('Form data being submitted:');
+                formData.forEach((value, key) => {
+                    if (key !== 'csrfmiddlewaretoken' && key !== 'content') {
+                        console.log(`${key}: ${value}`);
+                    }
+                });
+                console.log('Content field present in formData:', formData.has('content') ? 'Yes' : 'No');
+                if (formData.has('content')) {
+                    console.log('Content length:', formData.get('content').length);
+                }
+                
+                // 发送AJAX请求
+                fetch('/public/', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '发布';
+                    
+                    if (data.code === 200) {
+                        alert('发布成功！');
+                        // 跳转到博客详情页
+                        if (data.data && data.data.blog_id) {
+                            // 使用正确的路径，移除多余的'blog/'前缀
+                            window.location.href = `/detail/${data.data.blog_id}/`;
+                        }
+                    } else {
+                        alert('发布失败: ' + data.msg);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '发布';
+                    alert('请求错误: ' + error.message);
+                });
+            });
+        }
+        
+        // 页面滚动时调整编辑器高度
+        function adjustEditorHeight() {
+            function updateHeight() {
+                const windowHeight = window.innerHeight;
+                const editorWrapper = document.querySelector('.editor-wrapper');
+                const wrapperTop = editorWrapper.getBoundingClientRect().top;
+                
+                // 设置编辑器高度，留出适当的底部边距
+                const newHeight = Math.max(300, windowHeight - wrapperTop - 150);
+                document.getElementById('editor-container').style.height = newHeight + 'px';
+            }
+            
+            // 初始化时设置一次
+            updateHeight();
+            
+            // 监听窗口大小变化
+            window.addEventListener('resize', updateHeight);
+        }
+        
+        // 初始化
+        createHiddenContentField();
+        initEditor();
+        handleFormSubmit();
+        adjustEditorHeight();
+        
+        // 添加快捷键支持
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + S 保存草稿（预留功能）
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                alert('草稿保存功能暂未实现');
+            }
+        });
+    };
+    
+    // 发布博客页面额外脚本
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('blog-form');
+        const submitBtn = document.getElementById('submit-btn');
+
+        if (form && submitBtn) {
+            form.addEventListener('submit', function(e) {
+                // 禁用提交按钮并显示加载状态
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loader"></span> 发布中...';
+
+                // 隐藏所有旧的错误消息
+                const oldErrors = document.querySelectorAll('.error-message');
+                oldErrors.forEach(el => el.remove());
+            });
+        }
+
+        // 表单验证增强
+        const titleInput = document.getElementById('title');
+        const categorySelect = document.getElementById('category');
+
+        if (titleInput) {
+            titleInput.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+                const errorEl = this.nextElementSibling;
+                if (errorEl && errorEl.classList.contains('error-message')) {
+                    errorEl.remove();
+                }
+            });
+        }
+
+        if (categorySelect) {
+            categorySelect.addEventListener('change', function() {
+                this.classList.remove('is-invalid');
+                const errorEl = this.nextElementSibling;
+                if (errorEl && errorEl.classList.contains('error-message')) {
+                    errorEl.remove();
+                }
+            });
+        }
+    });
+    </script>
+{% endblock %}
+
+{% block main %}
+<div class="container mt-6">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <!-- 页面标题 -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">
+                    发布博客
+                </h1>
+                <p class="text-gray-600 mt-2">分享你的知识和见解</p>
+            </div>
+            
+            <!-- 博客发布提示 -->
+            <div class="blog-publishing-tips">
+                <h5>发布提示</h5>
+                <ul>
+                    <li>请确保博客内容符合网站规范</li>
+                    <li>选择合适的分类可以让更多读者找到您的文章</li>
+                    <li>您可以使用编辑器上方的工具栏进行排版</li>
+                    <li>发布后您可以在个人中心查看和管理您的博客</li>
+                </ul>
+            </div>
+            
+            <!-- 表单开始 -->
+            <form id="blog-form" action="" method="post" class="mt-6">
+                {% csrf_token %}
+                
+                <!-- 标题字段 -->
+                <div class="form-group">
+                    <label for="title" class="form-label required-field font-medium text-lg">博客标题</label>
+                    <input 
+                        type="text" 
+                        id="title" 
+                        name="title" 
+                        class="form-control {% if form.title.errors %}is-invalid{% endif %}" 
+                        placeholder="请输入一个吸引人的标题"
+                        maxlength="100"
+                        value="{{ form.title.value|default_if_none:'' }}"
+                    >
+                    {% if form.title.errors %}
+                        <div class="error-message">
+                            {% for error in form.title.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- 分类选择 -->
+                <div class="form-group">
+                    <label for="category" class="form-label required-field">选择分类</label>
+                    <select 
+                        id="category" 
+                        name="category" 
+                        class="form-select {% if form.category.errors %}is-invalid{% endif %}">
+                        <option value="">请选择博客分类</option>
+                        {% for item in categories %}
+                            <option value="{{ item.id }}" 
+                                {% if form.category.value == item.id %}selected{% endif %}>
+                                {{ item.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.category.errors %}
+                        <div class="error-message">
+                            {% for error in form.category.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if not categories %}
+                        <div class="error-message">
+                            当前没有可用的分类，请联系管理员添加分类
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- 内容编辑器 -->
+                <div class="mb-4 form-group">
+                    <label for="editor-container" class="form-label required-field">博客内容</label>
+                    <div class="editor-wrapper">
+                        <div id="toolbar-container"></div> <!-- 工具栏 -->
+                        <div id="editor-container"></div> <!-- 编辑区域 -->
+                    </div>
+                    {% if form.content.errors %}
+                        <div class="error-message">
+                            {% for error in form.content.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- 操作按钮 -->
+                <div class="mb-4 text-end">
+                    <a href="/" class="btn btn-secondary me-2">取消</a>
+                    <button 
+                        type="submit" 
+                        class="btn btn-primary" 
+                        id="submit-btn"
+                        {% if not categories %}disabled{% endif %}
+                    >
+                        发布博客
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

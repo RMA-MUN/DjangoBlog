@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}个人设置 - Django博客系统{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}">
+    <script>
+    // 头像上传预览功能
+    const avatarInput = document.getElementById('id_avatar');
+    const avatarPreview = document.querySelector('.avatar-preview');
+
+    if (avatarInput && avatarPreview) {
+        avatarInput.addEventListener('change', function(e) {
+            // 文件类型验证
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // 检查文件类型
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('请上传 JPG、PNG、GIF 或 WebP 格式的图片');
+                this.value = '';
+                return;
+            }
+            
+            // 检查文件大小（2MB）
+            const maxSize = 2 * 1024 * 1024; // 2MB
+            if (file.size > maxSize) {
+                alert('图片大小不能超过 2MB');
+                this.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                avatarPreview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // 表单验证功能
+    const settingsForm = document.getElementById('settings-form');
+
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', function(e) {
+            const bioField = document.getElementById('id_bio');
+            
+            // 个人简介字符限制验证
+            if (bioField && bioField.value.length > 500) {
+                alert('个人简介不能超过500个字符');
+                e.preventDefault();
+                return false;
+            }
+            
+            // 邮箱格式简单验证
+            const emailField = document.getElementById('id_email');
+            if (emailField && emailField.value) {
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (!emailPattern.test(emailField.value)) {
+                    alert('请输入有效的邮箱地址');
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+    }
+
+    // 选项卡切换动画效果
+    const tabLinks = document.querySelectorAll('.nav-tabs .nav-link');
+
+    tabLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            // 添加简单的动画效果类
+            const tabContent = document.querySelector(this.getAttribute('href'));
+            if (tabContent) {
+                tabContent.classList.add('fade');
+                setTimeout(() => {
+                    tabContent.classList.remove('fade');
+                }, 300);
+            }
+        });
+    });
+
+    // 头像放大查看功能
+    function initAvatarZoom() {
+        const modal = document.getElementById("avatar-modal");
+        const modalImg = document.getElementById("modal-img");
+        const previewImg = document.getElementById("avatar-preview");
+        const closeBtn = document.getElementsByClassName("close")[0];
+        
+        if (!modal || !modalImg || !previewImg || !closeBtn) return;
+        
+        // 点击头像或搜索图标时显示大图
+        previewImg.onclick = function() {
+            modal.style.display = "block";
+            modalImg.src = this.src;
+        }
+        
+        // 点击关闭按钮隐藏大图
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+        }
+        
+        // 点击模态框背景也隐藏大图
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    }
+
+    // 页面加载完成后初始化功能
+    document.addEventListener('DOMContentLoaded', function() {
+        initAvatarZoom();
+    });
+    </script>
+{% endblock %}
+
+{% block main %}
+    <div class="settings-container">
+        <h1 class="text-center mb-5">
+            <img src="{% static 'img/fonticon/设置.png' %}" alt="设置" class="me-2">个人设置
+        </h1>
+
+        <!-- 设置选项卡 -->
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#profile">个人信息</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#password">修改密码</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#security">账号安全</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#notifications">通知设置</a>
+            </li>
+        </ul>
+
+        <!-- 选项卡内容 -->
+        <div class="tab-content">
+            <!-- 个人信息选项卡 -->
+            <div class="tab-pane fade show active" id="profile">
+                <div class="card settings-card">
+                    <div class="card-body">
+                        <div class="settings-title">
+                            <img src="{% static 'img/fonticon/档案.png' %}" alt="个人信息">
+                            <h3>基本信息</h3>
+                        </div>
+
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+
+                            <!-- 头像上传 -->
+                            <div class="text-center mb-4">
+                                <div class="avatar-upload">
+                                    <!-- 头像预览，点击可以放大查看 -->
+                                    <div class="avatar-preview-container">
+                                        <img src="{{ profile.avatar.url }}" alt="用户头像" class="avatar-preview" id="avatar-preview">
+                                        <div class="avatar-zoom-overlay" title="点击放大查看">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    <!-- 隐藏的文件输入 -->
+                                    <input type="file" name="avatar" id="id_avatar" accept="image/*" style="display: none;">
+
+                                    <!-- 上传按钮 -->
+                                    <button type="button" class="btn btn-primary mt-2" onclick="document.getElementById('id_avatar').click()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera mr-1" viewBox="0 0 16 16">
+                                            <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.828 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z"/>
+                                            <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
+                                        </svg>
+                                        上传新头像
+                                    </button>
+
+                                    <!-- 简单的格式提示 -->
+                                    <small class="form-text text-muted block mt-1">支持jpg、png、gif、webp格式，最大2MB</small>
+
+                                    <!-- 错误信息显示 -->
+                                    {% if form.avatar.errors %}
+                                        <div class="text-danger mt-1">
+                                            {{ form.avatar.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- 头像放大查看模态框 -->
+                            <div id="avatar-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);">
+                                <span class="close" style="position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+                                <img class="modal-content" id="modal-img" style="margin: auto; display: block; max-width: 90%; max-height: 90vh;">
+                            </div>
+
+                            <script>
+                                // 头像放大查看功能
+                                var modal = document.getElementById("avatar-modal");
+                                var modalImg = document.getElementById("modal-img");
+                                var previewImg = document.getElementById("avatar-preview");
+                                var closeBtn = document.getElementsByClassName("close")[0];
+
+                                // 点击头像或搜索图标时显示大图
+                                previewImg.onclick = function() {
+                                    modal.style.display = "block";
+                                    modalImg.src = this.src;
+                                }
+
+                                // 点击关闭按钮隐藏大图
+                                closeBtn.onclick = function() {
+                                    modal.style.display = "none";
+                                }
+
+                                // 点击模态框背景也隐藏大图
+                                window.onclick = function(event) {
+                                    if (event.target == modal) {
+                                        modal.style.display = "none";
+                                    }
+                                }
+
+                                // 文件选择后预览新头像
+                                document.getElementById('id_avatar').addEventListener('change', function(e) {
+                                    if (e.target.files && e.target.files[0]) {
+                                        var reader = new FileReader();
+                                        reader.onload = function(e) {
+                                            previewImg.src = e.target.result;
+                                        }
+                                        reader.readAsDataURL(e.target.files[0]);
+                                    }
+                                });
+                            </script>
+
+                            <div class="row">
+                                <!-- 左侧表单 -->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="username">用户名</label>
+                                        <input type="text" class="form-control" id="username" value="{{ user.username }}" readonly>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="email">电子邮箱</label>
+                                        <input type="email" class="form-control" id="email" value="{{ user.email|default_if_none:'' }}" placeholder="请输入邮箱">
+                                    </div>
+                                </div>
+
+                                <!-- 右侧表单 -->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="id_bio">个人简介</label>
+                                        {{ form.bio }}
+                                        {% if form.bio.errors %}
+                                            <div class="text-danger mt-1">
+                                                {{ form.bio.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group text-center mt-5">
+                                <button type="submit" class="btn btn-warning">保存更改</button>
+                                <button type="button" class="btn btn-outline-secondary ms-3">取消</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 修改密码选项卡 -->
+            <div class="tab-pane fade" id="password">
+                <div class="card settings-card">
+                    <div class="card-body">
+                        <div class="settings-title">
+                            <img src="{% static 'img/fonticon/档案.png' %}" alt="修改密码">
+                            <h3>修改密码</h3>
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <div class="form-group">
+                                <label for="current-password">当前密码</label>
+                                <input type="password" class="form-control" id="current-password" placeholder="请输入当前密码">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="new-password">新密码</label>
+                                <input type="password" class="form-control" id="new-password" placeholder="请输入新密码">
+                                <small class="form-text text-muted">密码长度至少8位，包含字母和数字</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="confirm-password">确认新密码</label>
+                                <input type="password" class="form-control" id="confirm-password" placeholder="请再次输入新密码">
+                            </div>
+
+                            <div class="form-group text-center mt-5">
+                                <button type="submit" class="btn btn-warning">确认修改</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 账号安全选项卡 -->
+            <div class="tab-pane fade" id="security">
+                <div class="card settings-card">
+                    <div class="card-body">
+                        <div class="settings-title">
+                            <img src="{% static 'img/fonticon/档案.png' %}" alt="账号安全">
+                            <h3>账号安全</h3>
+                        </div>
+
+                        <div class="security-item">
+                            <div>
+                                <h5>手机号绑定</h5>
+                                <p class="text-muted text-sm">绑定手机以接收验证码登录</p>
+                            </div>
+                            <button class="btn btn-outline-primary">绑定手机</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 通知设置选项卡 -->
+            <div class="tab-pane fade" id="notifications">
+                <div class="card settings-card">
+                    <div class="card-body">
+                        <div class="settings-title">
+                            <img src="{% static 'img/fonticon/档案.png' %}" alt="通知设置">
+                            <h3>通知设置</h3>
+                        </div>
+
+                        <div class="notification-item">
+                            <div>
+                                <h5>评论通知</h5>
+                                <p class="text-muted text-sm">当有人评论您的博客时收到通知</p>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="comment-notification" checked>
+                            </div>
+                        </div>
+
+                        <div class="notification-item">
+                            <div>
+                                <h5>点赞通知</h5>
+                                <p class="text-muted text-sm">当有人点赞您的博客时收到通知</p>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="like-notification" checked>
+                            </div>
+                        </div>
+
+                        <div class="form-group text-center mt-5">
+                            <button type="button" class="btn btn-warning">保存设置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/settings.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}{% endblock %}</title>
+    <!-- 加载静态文件 - 添加版本号避免缓存问题 -->
+    <link rel="stylesheet" href="{% static 'bootstrap5/bootstrap.min.css' %}?v=1.0">
+    <!-- 加载js文件-->
+    <script src="{% static 'bootstrap5/popper.min.js' %}?v=1.0"></script>
+    <script src="{% static 'bootstrap5/bootstrap.min.js' %}?v=1.0"></script>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=1.0">
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+<header class="p-3 text-bg-light border-bottom mb-3">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+                <!-- 加载图标文件 -->
+                <img src="{% static 'img/fonticon/logo.png' %}" alt="" width="50" height="35" class="d-inline-block align-text-top">
+            </a>
+            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                <li><a href="/" class="nav-link px-2 nav-home-btn">首页</a></li>
+                <li><a href="{% url 'blog:pub_blog' %}" class="nav-link px-2 nav-publish-btn">发布</a></li>
+            </ul>
+            <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search" action="{% url 'blog:search_blog' %}" method="GET">
+                <input type="search" name="Q" class="form-control" placeholder="搜你想要..." aria-label="Search" autocomplete="off">
+            </form>
+
+            {% if user.is_authenticated %}
+                <div class="dropdown text-end">
+                    <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if user.userprofile.avatar %}
+                            <img src="{{ user.userprofile.avatar.url }}" alt="headicon" width="32" height="32" class="rounded-circle">
+                        {% else %}
+                            <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="32" height="32" class="rounded-circle">
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu text-small">
+                        <li><a class="dropdown-item" href="#">{{ user.username }}</a></li>
+                        <li><a class="dropdown-item" href="{% url 'author:settings' %}">
+                            <img src="{% static 'img/fonticon/设置.png' %}" alt="设置" class="mr-2" style="width: 16px; height: 16px; vertical-align: middle;">设置
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'author:logout' %}" id="logout-form">退出登录</a></li>
+                    </ul>
+                </div>
+            {% else %}
+                <div class="text-end">
+                    <a href="{% url 'author:login' %}" class="btn btn-outline-warning me-2">登录</a>
+                    <a href="{% url 'author:register' %}" class="btn btn-warning">注册</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<main class="container bg-white p-5 rounded fade-in">
+    {% block main %}{% endblock %}
+</main>
+
+<!-- 页脚 -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h4>关于我们</h4>
+                <p>这是一个现代化的Django博客系统，致力于提供优质的内容分享平台。</p>
+            </div>
+            <div class="col-md-4">
+                <h4>快速链接</h4>
+                <ul class="list-unstyled">
+                    <li><a href="/" class="text-white text-decoration-none hover:text-pink-300">首页</a></li>
+                    <li><a href="{% url 'blog:pub_blog' %}" class="text-white text-decoration-none hover:text-pink-300">发布博客</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h4>联系我们</h4>
+                <p>有任何问题或建议，请随时与我们联系。</p>
+            </div>
+        </div>
+        <hr class="border-white opacity-25 my-4">
+        <div class="text-center text-white-50">
+            <p>&copy; {% now 'Y' %} Django博客系统. 保留所有权利。</p>
+        </div>
+    </div>
+</footer>
+
+<!-- 自定义JavaScript增强 -->
+<script>
+    // 添加页面加载动画
+    document.addEventListener('DOMContentLoaded', function() {
+        // 为所有卡片元素添加淡入动画
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+            card.classList.add('fade-in');
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+        
+        // 为主要内容添加淡入动画
+        const mainContent = document.querySelector('main');
+        if (mainContent) {
+            mainContent.classList.add('fade-in');
+        }
+    });
+</script>
+
+</body>
+</html>
