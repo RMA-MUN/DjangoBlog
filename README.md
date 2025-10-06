@@ -17,6 +17,20 @@ DjangoBlogProject/
 └── DjangoBlogProject/ # 项目主配置
 ```
 
+## 系统截图预览
+
+### 功能界面展示
+
+| 功能模块 | 截图展示 |
+|---------|--------|
+| 首页 | ![首页截图](show/home.png) |
+| 用户注册 | ![注册截图](show/register.png) |
+| 用户登录 | ![登录截图](show/login.png) |
+| 个人设置 | ![个人信息截图](show/setting.png) |
+| 博客发布 | ![发布截图](show/publish.png) |
+| 评论功能 | ![评论截图](show/comment.png) |
+
+
 ## 已实现功能
 
 ### 用户管理模块
