@@ -95,16 +95,16 @@ pip install -r requirements.txt
 ```
 
 4. **配置数据库和信息**
-   
+
    请修改以下文件中的指定行：
-   
+
    1. 文件：`my.cnf`
       - 数据库名称、用户名、密码
-   
+
    2. 文件：`DjangoBlogProject/settings.py`
       - 第22-24行：SECRET_KEY
       - 第146-156行：邮箱配置（EMAIL_HOST_USER、EMAIL_HOST_PASSWORD、DEFAULT_FROM_EMAIL）
-   
+
    完成配置后，创建数据库迁移并应用：
    ```bash
    # 创建数据库迁移
