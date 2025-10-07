@@ -4,29 +4,11 @@
 {% endblock %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'highlight/styles/github-dark.min.css' %}">
-    <script src="{% static 'highlight/highlight.min.js' %}"></script>
+    <!-- 加载Highlight.js via CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/blog_detail.css' %}">
-    <script>
-    // 博客详情页脚本
-    document.addEventListener('DOMContentLoaded', function() {
-        // 代码高亮
-        if (typeof hljs !== 'undefined') {
-            hljs.highlightAll();
-        }
-
-        // 阅读进度条
-        window.addEventListener('scroll', function() {
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
-            const progressBar = document.getElementById("reading-progress");
-            if (progressBar) {
-                progressBar.style.width = scrolled + "%";
-            }
-        });
-    });
-    </script>
+    <script src="{% static 'js/blog_detail.js' %}"></script>
 {% endblock %}
 
 {% block main %}
@@ -42,9 +24,9 @@
                 </span>
                 <time class="text-sm text-muted">{{ blog.create_time|date:'Y年m月d日 H:i' }}</time>
             </div>
-            
+
             <h3 class="display-4 font-bold mb-4">{{ blog.title }}</h3>
-            
+
             <div class="d-flex items-center justify-between flex-wrap gap-4 bg-light p-4 rounded-lg">
                 <div class="d-flex items-center">
 
@@ -58,33 +40,33 @@
                         <div class="text-xs text-muted">作者</div>
                     </div>
                 </div>
-                
+
                 <div class="flex items-center space-x-6">
                     <div class="text-center">
-                        <div class="font-bold text-gray-700">0</div>
+                        <div class="font-bold text-gray-700">{{ blog.views_count }}</div>
                         <div class="text-xs text-muted">浏览量</div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <hr class="my-6 border-gray-200">
-        
+
         <!-- 博客内容 -->
         <div class="blog-content mb-8">
             {{ blog.content|safe }}
         </div>
-        
+
         <!-- 文章底部互动 -->
         <div class="flex justify-between items-center py-4 border-t border-b">
             <div class="flex space-x-4">
-                <button class="flex items-center space-x-1 text-gray-500 hover:text-pink-500 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                <button class="flex items-center space-x-1 hover:text-pink-500 transition-colors like-button" data-blog-id="{{ blog.id }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" style="color: {% if blog_is_liked %}#ec4899{% else %}#6b7280{% endif %}" viewBox="0 0 16 16">
                         <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
                     </svg>
-                    <span>点赞</span>
+                    <span class="likes-count">{{ blog.likes_count }}</span>
                 </button>
-                
+
                 <button class="flex items-center space-x-1 text-gray-500 hover:text-pink-500 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share" viewBox="0 0 16 16">
                         <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.5 2.5 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
@@ -92,17 +74,17 @@
                     <span>分享</span>
                 </button>
             </div>
-            
+
             <a href="/" class="btn btn-outline-secondary rounded-full mt-5">返回首页</a>
         </div>
-        
+
         <!-- 作者信息 -->
         <div class="mt-8 p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
             <div class="flex items-center">
                 {% if blog.author.userprofile.avatar %}
-                <img src="{{ blog.author.userprofile.avatar.url }}" alt="{{ blog.author.username }}" width="60" height="60" class="d-inline-block align-text-top rounded-circle">
+                    <img src="{{ blog.author.userprofile.avatar.url }}" alt="{{ blog.author.username }}" width="60" height="60" class="d-inline-block align-text-top rounded-circle">
                 {% else %}
-                <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="60" height="60" class="d-inline-block align-text-top rounded-circle">
+                    <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="60" height="60" class="d-inline-block align-text-top rounded-circle">
                 {% endif %}
                 <div class="ml-4">
                     <h4 class="font-bold">{{ blog.author }}</h4>
@@ -110,47 +92,47 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- 评论区 -->
         <div class="mt-10">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold">评论 ({{ blog.comments.all|length }})</h2>
             </div>
-            
+
             <!-- 评论表单 -->
             <form action="{% url 'blog:comment_blog' %}" method="post" class="mb-8 p-6 bg-light rounded-xl">
                 {% csrf_token %}
                 <input type="hidden" name="blog_id" value="{{ blog.id }}">
-                
+
                 <div class="mb-4">
-                    <textarea 
-                        class="form-control" 
-                        id="comment" 
-                        rows="4" 
-                        placeholder="分享你的想法..." 
-                        name="content"
-                        required
+                    <textarea
+                            class="form-control"
+                            id="comment"
+                            rows="4"
+                            placeholder="分享你的想法..."
+                            name="content"
+                            required
                     ></textarea>
                 </div>
-                
+
                 <div class="text-end">
                     <button type="submit" class="btn btn-warning px-6 py-2 rounded-full">
                         发表评论
                     </button>
                 </div>
             </form>
-            
+
             <!-- 评论列表 -->
-            {% if blog.comments.all %}
+            {% if comments %}
                 <div class="space-y-4">
-                    {% for comment in blog.comments.all %}
-                        <div class="p-4 border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                            <div class="d-flex justify-between items-start">
-                                <div class="d-flex items-center">
+                    {% for comment in comments %}
+                            <div class="p-4 border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                                <div class="d-flex justify-between items-start">
+                                    <div class="d-flex items-center">
                                     {% if comment.author.userprofile.avatar %}
-                                    <img src="{{ comment.author.userprofile.avatar.url }}" alt="{{ comment.author.username }}" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
+                                        <img src="{{ comment.author.userprofile.avatar.url }}" alt="{{ comment.author.username }}" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
                                     {% else %}
-                                    <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
+                                        <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
                                     {% endif %}
                                     <div class="ml-3">
                                         <div class="font-medium">{{ comment.author }}</div>
@@ -160,9 +142,81 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="mt-3 pl-12">
                                 <p>{{ comment.content }}</p>
+                                <div class="mt-2 flex space-x-4">
+                                    <button class="text-sm hover:text-pink-500 transition-colors like-comment-btn" data-comment-id="{{ comment.id }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-heart mr-1 inline" style="color: {% if comment.is_liked %}#ec4899{% else %}#6b7280{% endif %}">
+                                            <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
+                                        </svg>
+                                        <span class="like-count">{{ comment.likes_count }}</span>
+                                    </button>
+                                    <button class="text-sm text-gray-500 hover:text-blue-500 transition-colors reply-btn" data-comment-id="{{ comment.id }}">
+                                        回复
+                                    </button>
+                                </div>
+
+                                <!-- 回复表单 -->
+                                <div class="reply-form mt-3 hidden" id="reply-form-{{ comment.id }}">
+                                    <form action="{% url 'blog:comment_blog' %}" method="post" class="p-3 bg-gray-50 rounded-lg">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="blog_id" value="{{ blog.id }}">
+                                        <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                        <textarea
+                                                class="form-control form-control-sm"
+                                                rows="2"
+                                                placeholder="回复 @{{ comment.author.username }}..."
+                                                name="content"
+                                                required
+                                        ></textarea>
+                                        <div class="mt-2 text-end">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary mr-2 cancel-reply" data-comment-id="{{ comment.id }}">取消</button>
+                                            <button type="submit" class="btn btn-sm btn-primary">回复</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- 嵌套回复 -->
+                                {% if comment.replies.all %}
+                                    <div class="mt-4 pl-12 space-y-4">
+                                        {% for reply in comment.replies.all %}
+                                            <div class="p-3 border-l-2 border-gray-200 bg-gray-50 rounded-r-lg">
+                                                <div class="flex justify-between items-start">
+                                                    <div class="flex items-center">
+                                                        {% if reply.author.userprofile.avatar %}
+                                                            <img src="{{ reply.author.userprofile.avatar.url }}" alt="{{ reply.author.username }}" width="24" height="24" class="d-inline-block align-text-top rounded-circle">
+                                                        {% else %}
+                                                            <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="24" height="24" class="d-inline-block align-text-top rounded-circle">
+                                                        {% endif %}
+                                                        <div class="ml-2">
+                                                            <div class="text-sm font-medium">{{ reply.author }}</div>
+                                                            <div class="text-xs text-muted">
+                                                                {{ reply.create_time|date:'Y年m月d日 H:i' }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mt-2">
+                                                    <p class="text-sm">回复 @{{ comment.author.username }}: {{ reply.content }}</p>
+                                                </div>
+
+                                                <div class="mt-2 flex space-x-4">
+                                                    <button class="text-xs hover:text-pink-500 transition-colors like-comment-btn" data-comment-id="{{ reply.id }}">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-heart mr-1 inline" style="color: {% if reply.is_liked %}#ec4899{% else %}#6b7280{% endif %}">
+                                                            <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
+                                                        </svg>
+                                                        <span class="like-count">{{ reply.likes_count }}</span>
+                                                    </button>
+                                                    <button class="text-xs text-gray-500 hover:text-blue-500 transition-colors reply-btn" data-comment-id="{{ reply.id }}">
+                                                        回复
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                     {% endfor %}
