@@ -73,6 +73,7 @@ class UserProfileForm(forms.ModelForm):
             raise forms.ValidationError('个人简介不能超过500个字符')
         return bio
 
+
     def clean_avatar(self):
         """验证头像文件"""
         avatar = self.cleaned_data.get('avatar')
@@ -80,10 +81,22 @@ class UserProfileForm(forms.ModelForm):
             # 检查文件大小（限制为2MB）
             if avatar.size > 2 * 1024 * 1024:
                 raise forms.ValidationError('头像大小不能超过2MB')
-            # 检查文件类型
+            
+            # 检查文件类型 - 处理两种情况
             allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-            if avatar.content_type not in allowed_types:
-                raise forms.ValidationError('只允许上传jpg、png、gif、webp格式的图片')
+            allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+            
+            # 判断文件对象类型，分别处理
+            try:
+                # 对于新上传的文件（有content_type属性的情况）
+                if avatar.content_type not in allowed_types:
+                    raise forms.ValidationError('只允许上传jpg、png、gif、webp格式的图片')
+            except AttributeError:
+                # 对于已保存的文件（ImageFieldFile对象），检查文件扩展名
+                import os
+                file_ext = os.path.splitext(avatar.name)[1].lower()
+                if file_ext not in allowed_extensions:
+                    raise forms.ValidationError('只允许上传jpg、png、gif、webp格式的图片')
         return avatar
 
     def clean_email(self):

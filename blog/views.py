@@ -9,10 +9,108 @@ from django.shortcuts import render, redirect, reverse
 from django.views.decorators.http import require_http_methods, require_POST, require_GET
 
 from .forms import BlogForm
-from .models import BlogCategory, Blog, BlogComment
+from .models import BlogCategory, Blog, BlogComment, CommentLike, BlogLike
 
 
 # Create your views here.
+
+@login_required(login_url='author:login')
+@require_POST
+def like_blog(request) -> JsonResponse:
+    """
+    点赞/取消点赞博客
+    :param request: 请求对象
+    :return: JSON响应
+    """
+    try:
+        # 从POST数据获取博客ID
+        import json
+        data = json.loads(request.body)
+        blog_id = data.get('blog_id')
+        
+        if not blog_id:
+            return JsonResponse({'code': 400, 'msg': '缺少博客ID'})
+        
+        # 获取博客对象
+        blog = Blog.objects.get(pk=blog_id)
+        
+        # 检查是否已经点赞
+        like_obj, created = BlogLike.objects.get_or_create(
+            blog=blog,
+            user=request.user
+        )
+        
+        # 如果已存在，则取消点赞
+        if not created:
+            like_obj.delete()
+            is_liked = False
+        else:
+            is_liked = True
+        
+        # 获取当前点赞数
+        likes_count = BlogLike.objects.filter(blog=blog).count()
+        
+        # 返回成功响应
+        return JsonResponse({
+            'code': 200,
+            'msg': '操作成功',
+            'likes_count': likes_count,
+            'is_liked': is_liked
+        })
+        
+    except Blog.DoesNotExist:
+        return JsonResponse({'code': 404, 'msg': '博客不存在'})
+    except Exception as e:
+        return JsonResponse({'code': 500, 'msg': f'服务器错误: {str(e)}'})
+
+@login_required(login_url='author:login')
+@require_POST
+def like_comment(request) -> JsonResponse:
+    """
+    点赞/取消点赞评论
+    :param request: 请求对象
+    :return: JSON响应
+    """
+    try:
+        # 从POST数据获取评论ID
+        import json
+        data = json.loads(request.body)
+        comment_id = data.get('comment_id')
+        
+        if not comment_id:
+            return JsonResponse({'code': 400, 'msg': '缺少评论ID'})
+        
+        # 获取评论对象
+        comment = BlogComment.objects.get(pk=comment_id)
+        
+        # 检查是否已经点赞
+        like_obj, created = CommentLike.objects.get_or_create(
+            comment=comment,
+            user=request.user
+        )
+        
+        # 如果已存在，则取消点赞
+        if not created:
+            like_obj.delete()
+            is_liked = False
+        else:
+            is_liked = True
+        
+        # 获取当前点赞数
+        likes_count = CommentLike.objects.filter(comment=comment).count()
+        
+        # 返回成功响应
+        return JsonResponse({
+            'code': 200,
+            'msg': '操作成功',
+            'likes_count': likes_count,
+            'is_liked': is_liked
+        })
+        
+    except BlogComment.DoesNotExist:
+        return JsonResponse({'code': 404, 'msg': '评论不存在'})
+    except Exception as e:
+        return JsonResponse({'code': 500, 'msg': f'服务器错误: {str(e)}'})
 
 def index(request) -> HttpResponse:
     # 获取所有博客并按创建时间倒序排序
@@ -29,11 +127,55 @@ def blog_detail(request, blog_id) -> HttpResponse:
     try:
         # 修正查询方式，并使用正确的变量名
         blog = Blog.objects.get(pk=blog_id)
+        
+        # 更新浏览量
+        blog.views_count += 1
+        blog.save()
+        
+        # 获取评论列表，包括回复
+        comments = BlogComment.objects.filter(blog=blog, parent_comment=None).order_by('-create_time')
+        
+        # 准备上下文数据
+        context = {
+            'blog': blog,
+            'comments': comments,
+        }
+        
+        # 如果用户已登录，获取点赞状态
+        if request.user.is_authenticated:
+            # 博客点赞状态
+            blog_is_liked = BlogLike.objects.filter(blog=blog, user=request.user).exists()
+            context['blog_is_liked'] = blog_is_liked
+            
+            # 为每个评论和回复添加点赞状态属性
+            # 先获取所有评论的ID
+            all_comment_ids = []
+            def collect_comment_ids(comment_list):
+                for comment in comment_list:
+                    all_comment_ids.append(comment.id)
+                    if comment.replies.exists():
+                        collect_comment_ids(comment.replies.all())
+            collect_comment_ids(comments)
+            
+            # 批量查询用户点赞的评论
+            user_liked_comments = set(CommentLike.objects.filter(
+                comment_id__in=all_comment_ids, 
+                user=request.user
+            ).values_list('comment_id', flat=True))
+            
+            # 为每个评论添加点赞状态属性
+            def add_like_status(comment_list):
+                for comment in comment_list:
+                    comment.is_liked = comment.id in user_liked_comments
+                    if comment.replies.exists():
+                        add_like_status(comment.replies.all())
+            add_like_status(comments)
+        
     except Blog.DoesNotExist:
         return HttpResponseBadRequest("博客不存在")
 
     # 传递正确的变量名到模板
-    return render(request, 'blog_detail.html', {'blog': blog})
+    return render(request, 'blog_detail.html', context)
 
 @login_required(login_url='author:login')
 @require_http_methods(['GET', 'POST'])
@@ -142,18 +284,109 @@ def pub_comment(request) -> HttpResponse:
     """
     blog_id = request.POST.get('blog_id')
     content = request.POST.get('content')
+    parent_id = request.POST.get('parent_id')
     
     # 添加输入验证
     if not blog_id or not content:
         return HttpResponseBadRequest("博客ID和评论内容不能为空")
         
     try:
-        BlogComment.objects.create(blog_id=blog_id, content=content, author=request.user)
+        # 检查博客是否存在
+        blog = Blog.objects.get(pk=blog_id)
+        
+        # 创建评论
+        comment_data = {
+            'blog': blog,
+            'content': content,
+            'author': request.user
+        }
+        
+        # 如果是回复评论
+        if parent_id:
+            try:
+                parent_comment = BlogComment.objects.get(pk=parent_id)
+                comment_data['parent_comment'] = parent_comment
+            except BlogComment.DoesNotExist:
+                return HttpResponseBadRequest("回复的评论不存在")
+        
+        BlogComment.objects.create(**comment_data)
         # 重新加载博客详情页
         return redirect(reverse('blog:blog_detail', kwargs={'blog_id': blog_id}))
     except Exception as e:
         return HttpResponseBadRequest(f"评论失败: {str(e)}")
 
+@require_POST
+@login_required(login_url='author:login')
+def like_comment(request) -> JsonResponse:
+    """
+    点赞评论
+    :param request: 请求对象
+    :return: JSON响应
+    """
+    comment_id = request.POST.get('comment_id')
+    
+    if not comment_id:
+        return JsonResponse({'success': False, 'message': '评论ID不能为空'})
+    
+    try:
+        comment = BlogComment.objects.get(pk=comment_id)
+        
+        # 检查用户是否已经点赞
+        like, created = CommentLike.objects.get_or_create(comment=comment, user=request.user)
+        
+        if created:
+            # 新增点赞
+            comment.likes_count += 1
+            comment.save()
+            return JsonResponse({'success': True, 'liked': True, 'likes_count': comment.likes_count})
+        else:
+            # 取消点赞
+            like.delete()
+            comment.likes_count = max(0, comment.likes_count - 1)
+            comment.save()
+            return JsonResponse({'success': True, 'liked': False, 'likes_count': comment.likes_count})
+            
+    except BlogComment.DoesNotExist:
+        return JsonResponse({'success': False, 'message': '评论不存在'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+
+@require_POST
+@login_required(login_url='author:login')
+def like_blog(request) -> JsonResponse:
+    """
+    点赞博客
+    :param request: 请求对象
+    :return: JSON响应
+    """
+    blog_id = request.POST.get('blog_id')
+    
+    if not blog_id:
+        return JsonResponse({'success': False, 'message': '博客ID不能为空'})
+    
+    try:
+        blog = Blog.objects.get(pk=blog_id)
+        
+        # 检查用户是否已经点赞
+        like, created = BlogLike.objects.get_or_create(blog=blog, user=request.user)
+        
+        if created:
+            # 新增点赞
+            blog.likes_count += 1
+            blog.save()
+            return JsonResponse({'success': True, 'liked': True, 'likes_count': blog.likes_count})
+        else:
+            # 取消点赞
+            like.delete()
+            blog.likes_count = max(0, blog.likes_count - 1)
+            blog.save()
+            return JsonResponse({'success': True, 'liked': False, 'likes_count': blog.likes_count})
+            
+    except Blog.DoesNotExist:
+        return JsonResponse({'success': False, 'message': '博客不存在'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
 
 @require_GET
 def search_blog(request) -> HttpResponse:

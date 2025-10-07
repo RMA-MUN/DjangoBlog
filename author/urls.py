@@ -11,4 +11,5 @@ urlpatterns = [
     path('settings/', views.settings_view, name='settings'),
     path('upload-avatar/', views.upload_avatar, name='upload_avatar'),
     path('upload-bio/', views.upload_bio, name='upload_bio'),
+    path('update-password/', views.update_password, name='update_password'),
 ]
