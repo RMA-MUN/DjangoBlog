@@ -74,7 +74,7 @@ DjangoBlogProject/
 
 1. **克隆项目**
 ```bash
-git clone <项目仓库地址>
+git clone https://github.com/RMA-MUN/DjangoBlog
 cd DjangoBlogProject
 ```
 
@@ -173,5 +173,6 @@ python manage.py runserver
    - 使用静态文件压缩工具
 
 ## License
+
 
 MIT
