@@ -44,9 +44,21 @@ class BlogComment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='作者')
     parent_comment = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies', verbose_name='父评论')
     likes_count = models.IntegerField(default=0, verbose_name='点赞数')
+    # is_reply字段，设置默认值为False
+    is_reply = models.BooleanField(default=False, verbose_name='是否回复评论')
+    # 添加一个id字段来存储这个回复评论的id
+    reply_id = models.IntegerField(null=True, blank=True, verbose_name='回复评论id')
 
     def __str__(self):
         return self.content[:20] + '...'
+    
+    def save(self, *args, **kwargs):
+        # 当有parent_comment时，设置is_reply为True
+        self.is_reply = self.parent_comment is not None
+        # 如果有parent_comment，同时设置reply_id
+        if self.parent_comment:
+            self.reply_id = self.parent_comment.id
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = '博客评论'

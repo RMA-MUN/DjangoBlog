@@ -132,8 +132,9 @@ window.onload = function () {
                 console.log('Content length:', formData.get('content').length);
             }
             
+            // 修改fetch请求的URL，从错误的'/public/'改为正确的'/blog/pub-blog/'
             // 发送AJAX请求
-            fetch('/public/', {
+            fetch('/blog/pub-blog/', {
                 method: 'POST',
                 body: formData
             })
@@ -201,6 +202,7 @@ window.onload = function () {
     });
 };
 
+// 删除这段重复的表单提交事件监听器
 // 发布博客页面额外脚本
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('blog-form');

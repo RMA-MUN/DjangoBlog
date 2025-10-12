@@ -14,17 +14,19 @@
         </h1>
         <p class="text-muted mt-2">发现精彩内容，分享你的想法</p>
     </div>
-    
+
     <!-- 博客过滤器 -->
     <div class="bg-light p-4 rounded-lg shadow-sm mb-6">
         <div class="d-flex flex-wrap gap-3 justify-content-between items-center">
             <div class="text-muted">共 {{ blogs|length }} 篇博客</div>
             <div>
-                <select class="form-control form-control-sm w-auto d-inline-block">
-                    <option>最新发布</option>
-                    <option>热门推荐</option>
-                    <option>最多评论</option>
-                </select>
+                <form method="get" action="">
+                    <select name="sort_by" class="form-control form-control-sm w-auto d-inline-block" onchange="this.form.submit()">
+                        <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>最新发布</option>
+                        <option value="most_likes" {% if sort_by == 'most_likes' %}selected{% endif %}>最多点赞</option>
+                        <option value="most_views" {% if sort_by == 'most_views' %}selected{% endif %}>最多浏览</option>
+                    </select>
+                </form>
             </div>
         </div>
     </div>
@@ -60,7 +62,9 @@
                         <div class="d-flex justify-content-between items-center">
                             <div class="d-flex align-items-center">
                                 {% if blog.author.userprofile.avatar %}
-                                    <img src="{{ blog.author.userprofile.avatar.url }}" alt="" width="32" height="32" class="d-inline-block align-text-top rounded-circle">
+                                    <a href="{% url 'author:user_page' blog.author.id %}">
+                                        <img src="{{ blog.author.userprofile.avatar.url }}" alt="" width="32" height="32" class="d-inline-block align-text-top rounded-circle">
+                                    </a>
                                 {% else %}
                                     <!-- 可以使用一个默认头像图片或者简单的占位符 -->
                                     <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="32" height="32" class="d-inline-block align-text-top rounded-circle">

@@ -13,10 +13,11 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.http import BadHeaderError, HttpResponse
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_http_methods, require_POST, require_GET
+from blog.models import Blog
 
 from .forms import RegisterForm, LoginForm, UserProfileForm
 from .models import Captcha, UserProfile
@@ -420,3 +421,32 @@ def update_password(request):
 
     # 返回成功响应
     return render(request, 'settings.html', {'user': user, 'msg': '密码更新成功'})
+
+@require_GET
+def user_page(request, user_id) -> HttpResponse:
+    """用户个人页面
+    
+    :param request: 请求对象
+    :param user_id: 用户ID
+    :return: 渲染用户个人页面
+    """
+    # 获取用户信息
+    viewed_user = get_object_or_404(User, pk=user_id)
+    
+    # 获取用户资料
+    user_profile, created = UserProfile.objects.get_or_create(user=viewed_user)
+    
+    # 获取用户发布的博客，按创建时间倒序
+    user_blogs = Blog.objects.filter(author=viewed_user).order_by('-create_time')
+    
+    # 准备上下文数据
+    context = {
+        'viewed_user': viewed_user,
+        'user_profile': user_profile,
+        'user_blogs': user_blogs,
+        'total_blogs': user_blogs.count(),
+        'total_views': sum(blog.views_count for blog in user_blogs),
+        'total_likes': sum(blog.likes_count for blog in user_blogs)
+    }
+    
+    return render(request, 'user_page.html', context)

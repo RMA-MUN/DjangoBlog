@@ -1,4 +1,28 @@
 /* 博客详情页样式 */
+
+/* 点赞按钮图片样式，确保显示原始颜色 */
+.like-icon img,
+.like-comment-btn img {
+    filter: none !important;
+    opacity: 1 !important;
+    mix-blend-mode: normal !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+}
+
+/* 确保点赞按钮图片不受任何全局滤镜影响 */
+button.like-button img,
+button.like-comment-btn img {
+    -webkit-filter: none !important;
+    -moz-filter: none !important;
+    -o-filter: none !important;
+    -ms-filter: none !important;
+    filter: none !important;
+    background: transparent !important;
+    border: none !important;
+}
 .blog-content {
     font-size: 1.05rem;
     line-height: 1.8;

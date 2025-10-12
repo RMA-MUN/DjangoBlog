@@ -30,11 +30,13 @@
             <div class="d-flex items-center justify-between flex-wrap gap-4 bg-light p-4 rounded-lg">
                 <div class="d-flex items-center">
 
-                    {% if blog.author.userprofile.avatar %}
-                        <img src="{{ blog.author.userprofile.avatar.url }}" alt="{{ blog.author.username }}" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
-                    {% else %}
-                        <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
-                    {% endif %}
+                    <a href="{% url 'author:user_page' blog.author.id %}">
+                        {% if blog.author.userprofile.avatar %}
+                            <img src="{{ blog.author.userprofile.avatar.url }}" alt="{{ blog.author.username }}" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
+                        {% else %}
+                            <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
+                        {% endif %}
+                    </a>
                     <div class="ml-3">
                         <div class="font-medium">{{ blog.author }}</div>
                         <div class="text-xs text-muted">作者</div>
@@ -58,34 +60,39 @@
         </div>
 
         <!-- 文章底部互动 -->
-        <div class="flex justify-between items-center py-4 border-t border-b">
+        <div class="flex justify-between items-center py-4 border-t border-b border-gray-200">
             <div class="flex space-x-4">
                 <button class="flex items-center space-x-1 hover:text-pink-500 transition-colors like-button" data-blog-id="{{ blog.id }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" style="color: {% if blog_is_liked %}#ec4899{% else %}#6b7280{% endif %}" viewBox="0 0 16 16">
-                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
-                    </svg>
+                    <span class="like-icon">
+                    {% if blog_is_liked %}
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="#ff4d6d" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    {% else %}
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    {% endif %}
+                    </span>
                     <span class="likes-count">{{ blog.likes_count }}</span>
                 </button>
-
-                <button class="flex items-center space-x-1 text-gray-500 hover:text-pink-500 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share" viewBox="0 0 16 16">
-                        <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.5 2.5 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
-                    </svg>
-                    <span>分享</span>
-                </button>
+                <!-- 调试用：确认ID是否正确渲染 -->
+                <span style="display:none">当前博客ID: {{ blog.id }}</span>
             </div>
-
-            <a href="/" class="btn btn-outline-secondary rounded-full mt-5">返回首页</a>
+        
+            <a href="/" class="btn btn-outline-secondary rounded-full">返回首页</a>
         </div>
 
         <!-- 作者信息 -->
         <div class="mt-8 p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
             <div class="flex items-center">
-                {% if blog.author.userprofile.avatar %}
-                    <img src="{{ blog.author.userprofile.avatar.url }}" alt="{{ blog.author.username }}" width="60" height="60" class="d-inline-block align-text-top rounded-circle">
-                {% else %}
-                    <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="60" height="60" class="d-inline-block align-text-top rounded-circle">
-                {% endif %}
+                <a href="{% url 'author:user_page' blog.author.id %}">
+                    {% if blog.author.userprofile.avatar %}
+                        <img src="{{ blog.author.userprofile.avatar.url }}" alt="{{ blog.author.username }}" width="60" height="60" class="d-inline-block align-text-top rounded-circle">
+                    {% else %}
+                        <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="60" height="60" class="d-inline-block align-text-top rounded-circle">
+                    {% endif %}
+                </a>
                 <div class="ml-4">
                     <h4 class="font-bold">{{ blog.author }}</h4>
                     <p class="text-sm text-gray-600 mt-1">热爱技术分享的博主</p>
@@ -96,11 +103,11 @@
         <!-- 评论区 -->
         <div class="mt-10">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold">评论 ({{ blog.comments.all|length }})</h2>
+                <h2 class="text-2xl font-bold">评论 ({{ comments.count }})</h2>
             </div>
 
             <!-- 评论表单 -->
-            <form action="{% url 'blog:comment_blog' %}" method="post" class="mb-8 p-6 bg-light rounded-xl">
+            <form action="{% url 'blog:comment_blog' %}" method="post" class="mb-8 p-6 bg-gray-50 rounded-xl">
                 {% csrf_token %}
                 <input type="hidden" name="blog_id" value="{{ blog.id }}">
 
@@ -116,7 +123,7 @@
                 </div>
 
                 <div class="text-end">
-                    <button type="submit" class="btn btn-warning px-6 py-2 rounded-full">
+                    <button type="submit" class="btn btn-primary px-6 py-2 rounded-full">
                         发表评论
                     </button>
                 </div>
@@ -126,14 +133,16 @@
             {% if comments %}
                 <div class="space-y-4">
                     {% for comment in comments %}
-                            <div class="p-4 border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                                <div class="d-flex justify-between items-start">
-                                    <div class="d-flex items-center">
-                                    {% if comment.author.userprofile.avatar %}
-                                        <img src="{{ comment.author.userprofile.avatar.url }}" alt="{{ comment.author.username }}" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
-                                    {% else %}
-                                        <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
-                                    {% endif %}
+                        <div class="p-4 border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                            <div class="d-flex justify-between items-start">
+                                <div class="d-flex items-center">
+                                    <a href="{% url 'author:user_page' comment.author.id %}">
+                                        {% if comment.author.userprofile.avatar %}
+                                            <img src="{{ comment.author.userprofile.avatar.url }}" alt="{{ comment.author.username }}" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
+                                        {% else %}
+                                            <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="36" height="36" class="d-inline-block align-text-top rounded-circle">
+                                        {% endif %}
+                                    </a>
                                     <div class="ml-3">
                                         <div class="font-medium">{{ comment.author }}</div>
                                         <div class="text-xs text-muted">
@@ -145,13 +154,24 @@
 
                             <div class="mt-3 pl-12">
                                 <p>{{ comment.content }}</p>
+                                <!-- 评论列表中的点赞按钮 -->
                                 <div class="mt-2 flex space-x-4">
+                                    <!-- 点赞按钮 -->
                                     <button class="text-sm hover:text-pink-500 transition-colors like-comment-btn" data-comment-id="{{ comment.id }}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-heart mr-1 inline" style="color: {% if comment.is_liked %}#ec4899{% else %}#6b7280{% endif %}">
-                                            <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
-                                        </svg>
+                                        <!-- 判断是否点赞 -->
+                                        {% if comment.is_liked %}
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff4d6d" xmlns="http://www.w3.org/2000/svg" class="mr-1 inline">
+                                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                            </svg>
+                                        {% else %}
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" class="mr-1 inline">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                        {% endif %}
                                         <span class="like-count">{{ comment.likes_count }}</span>
                                     </button>
+                                    <!-- 调试用：确认评论ID是否正确渲染 -->
+                                    <span style="display:none">当前评论ID: {{ comment.id }}</span>
                                     <button class="text-sm text-gray-500 hover:text-blue-500 transition-colors reply-btn" data-comment-id="{{ comment.id }}">
                                         回复
                                     </button>
@@ -184,11 +204,13 @@
                                             <div class="p-3 border-l-2 border-gray-200 bg-gray-50 rounded-r-lg">
                                                 <div class="flex justify-between items-start">
                                                     <div class="flex items-center">
-                                                        {% if reply.author.userprofile.avatar %}
-                                                            <img src="{{ reply.author.userprofile.avatar.url }}" alt="{{ reply.author.username }}" width="24" height="24" class="d-inline-block align-text-top rounded-circle">
-                                                        {% else %}
-                                                            <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="24" height="24" class="d-inline-block align-text-top rounded-circle">
-                                                        {% endif %}
+                                                        <a href="{% url 'author:user_page' reply.author.id %}">
+                                                            {% if reply.author.userprofile.avatar %}
+                                                                <img src="{{ reply.author.userprofile.avatar.url }}" alt="{{ reply.author.username }}" width="24" height="24" class="d-inline-block align-text-top rounded-circle">
+                                                            {% else %}
+                                                                <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="24" height="24" class="d-inline-block align-text-top rounded-circle">
+                                                            {% endif %}
+                                                        </a>
                                                         <div class="ml-2">
                                                             <div class="text-sm font-medium">{{ reply.author }}</div>
                                                             <div class="text-xs text-muted">
@@ -202,13 +224,22 @@
                                                     <p class="text-sm">回复 @{{ comment.author.username }}: {{ reply.content }}</p>
                                                 </div>
 
+                                                <!-- 回复中的点赞按钮 -->
                                                 <div class="mt-2 flex space-x-4">
-                                                    <button class="text-xs hover:text-pink-500 transition-colors like-comment-btn" data-comment-id="{{ reply.id }}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-heart mr-1 inline" style="color: {% if reply.is_liked %}#ec4899{% else %}#6b7280{% endif %}">
-                                                            <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
-                                                        </svg>
-                                                        <span class="like-count">{{ reply.likes_count }}</span>
-                                                    </button>
+{#                                                    <button class="text-xs hover:text-pink-500 transition-colors like-comment-btn" data-comment-id="{{ reply.id }}">#}
+{#                                                    {% if reply.is_liked %}#}
+{#                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff4d6d" xmlns="http://www.w3.org/2000/svg" class="mr-1 inline">#}
+{#                                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>#}
+{#                                                    </svg>#}
+{#                                                    {% else %}#}
+{#                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" class="mr-1 inline">#}
+{#                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>#}
+{#                                                    </svg>#}
+{#                                                    {% endif %}#}
+{#                                                    <span class="like-count">{{ reply.likes_count }}</span>#}
+{#                                                    </button>#}
+                                                    <!-- 调试用：确认回复ID是否正确渲染 -->
+                                                    <span style="display:none">当前回复ID: {{ reply.id }}</span>
                                                     <button class="text-xs text-gray-500 hover:text-blue-500 transition-colors reply-btn" data-comment-id="{{ reply.id }}">
                                                         回复
                                                     </button>

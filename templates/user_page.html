@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/user_page.css' %}">
+{% endblock %}
+{% block main %}
+    <div class="user-page-container">
+        <!-- 用户信息头部 -->
+        <div class="user-header">
+        <div class="avatar-section">
+            <a href="{% url 'author:user_page' viewed_user.id %}">
+                {% if user_profile.avatar %}
+                <img src="{{ user_profile.avatar.url }}" alt="{{ viewed_user.username }}的头像" class="user-avatar">
+                {% else %}
+                <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" class="user-avatar">
+                {% endif %}
+            </a>
+        </div>
+        <div class="user-info">
+            <h1 class="username">{{ viewed_user.username }}</h1>
+            <div class="user-id">ID: {{ viewed_user.id }}</div>
+                {% if user_profile.bio %}
+                <div class="user-bio">{{ user_profile.bio }}</div>
+                {% else %}
+                <div class="user-bio">这个人很懒，还没有填写个人简介</div>
+                {% endif %}
+            </div>
+            <div class="user-stats">
+                <div class="stat-item">
+                    <div class="stat-number">{{ total_blogs }}</div>
+                    <div class="stat-label">博客</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ total_views }}</div>
+                    <div class="stat-label">浏览</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ total_likes }}</div>
+                    <div class="stat-label">获赞</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户博客列表 -->
+        <div class="user-blogs-section">
+            <h2 class="section-title">用户博客</h2>
+            {% if user_blogs %}
+            <div class="blogs-grid">
+                {% for blog in user_blogs %}
+                <article class="blog-card">
+                    <h3 class="blog-title"><a href="{% url 'blog:blog_detail' blog.id %}">{{ blog.title }}</a></h3>
+                    <div class="blog-meta">
+                        <span class="category">{{ blog.category.name }}</span>
+                        <span class="time">{{ blog.create_time|date:"Y-m-d" }}</span>
+                    </div>
+                    <div class="blog-excerpt">{{ blog.content|striptags|truncatechars:100 }}</div>
+                    <div class="blog-stats">
+                        <span class="views">浏览{{ blog.views_count }}</span>
+                        <span class="likes">获赞{{ blog.likes_count }}</span>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-blogs">
+                <p>该用户还没有发布任何博客</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

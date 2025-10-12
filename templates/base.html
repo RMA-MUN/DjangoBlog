@@ -40,8 +40,8 @@
                             <img src="{% static 'img/headicon/default.png' %}" alt="默认头像" width="32" height="32" class="rounded-circle">
                         {% endif %}
                     </a>
-                    <ul class="dropdown-menu text-small">
-                        <li><a class="dropdown-item" href="#">{{ user.username }}</a></li>
+                    <ul class="dropdown-menu text-small" id="user-dropdown">
+                        <li><a class="dropdown-item" href="{% url 'author:user_page' user.id %}">{{ user.username }}</a></li>
                         <li><a class="dropdown-item" href="{% url 'author:settings' %}">
                             <img src="{% static 'img/fonticon/设置.png' %}" alt="设置" class="mr-2" style="width: 16px; height: 16px; vertical-align: middle;">设置
                         </a></li>

@@ -19,6 +19,17 @@ header {
     transition: all 0.3s ease;
 }
 
+/* 下拉菜单悬停效果 */
+.dropdown-menu .dropdown-item {
+    transition: all 0.3s ease;
+}
+
+.dropdown-menu .dropdown-item:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+    transform: translateX(5px);
+}
+
 header:hover {
     box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
 }

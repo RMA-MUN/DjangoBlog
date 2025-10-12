@@ -22,12 +22,12 @@
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="tab" href="#password">修改密码</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#security">账号安全</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#notifications">通知设置</a>
-            </li>
+{#            <li class="nav-item">#}
+{#                <a class="nav-link" data-bs-toggle="tab" href="#security">账号安全</a>#}
+{#            </li>#}
+{#            <li class="nav-item">#}
+{#                <a class="nav-link" data-bs-toggle="tab" href="#notifications">通知设置</a>#}
+{#            </li>#}
         </ul>
 
         <!-- 选项卡内容 -->
@@ -140,7 +140,7 @@
                 <div class="card settings-card">
                     <div class="card-body">
                         <div class="settings-title">
-                            <img src="{% static 'img/fonticon/档案.png' %}" alt="修改密码">
+                            <img src="{% static 'img/fonticon/密码.png' %}" alt="修改密码">
                             <h3>修改密码</h3>
                         </div>
 
@@ -187,61 +187,61 @@
                 </div>
             </div>
 
-            <!-- 账号安全选项卡 -->
-            <div class="tab-pane fade" id="security">
-                <div class="card settings-card">
-                    <div class="card-body">
-                        <div class="settings-title">
-                            <img src="{% static 'img/fonticon/档案.png' %}" alt="账号安全">
-                            <h3>账号安全</h3>
-                        </div>
-
-                        <div class="security-item">
-                            <div>
-                                <h5>手机号绑定</h5>
-                                <p class="text-muted text-sm">绑定手机以接收验证码登录</p>
-                            </div>
-                            <button class="btn btn-outline-primary">绑定手机</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 通知设置选项卡 -->
-            <div class="tab-pane fade" id="notifications">
-                <div class="card settings-card">
-                    <div class="card-body">
-                        <div class="settings-title">
-                            <img src="{% static 'img/fonticon/档案.png' %}" alt="通知设置">
-                            <h3>通知设置</h3>
-                        </div>
-
-                        <div class="notification-item">
-                            <div>
-                                <h5>评论通知</h5>
-                                <p class="text-muted text-sm">当有人评论您的博客时收到通知</p>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="comment-notification" checked>
-                            </div>
-                        </div>
-
-                        <div class="notification-item">
-                            <div>
-                                <h5>点赞通知</h5>
-                                <p class="text-muted text-sm">当有人点赞您的博客时收到通知</p>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="like-notification" checked>
-                            </div>
-                        </div>
-
-                        <div class="form-group text-center mt-5">
-                            <button type="button" class="btn btn-warning">保存设置</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+{#            <!-- 账号安全选项卡 -->#}
+{#            <div class="tab-pane fade" id="security">#}
+{#                <div class="card settings-card">#}
+{#                    <div class="card-body">#}
+{#                        <div class="settings-title">#}
+{#                            <img src="{% static 'img/fonticon/档案.png' %}" alt="账号安全">#}
+{#                            <h3>账号安全</h3>#}
+{#                        </div>#}
+{##}
+{#                        <div class="security-item">#}
+{#                            <div>#}
+{#                                <h5>手机号绑定</h5>#}
+{#                                <p class="text-muted text-sm">绑定手机以接收验证码登录</p>#}
+{#                            </div>#}
+{#                            <button class="btn btn-outline-primary">绑定手机</button>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <!-- 通知设置选项卡 -->#}
+{#            <div class="tab-pane fade" id="notifications">#}
+{#                <div class="card settings-card">#}
+{#                    <div class="card-body">#}
+{#                        <div class="settings-title">#}
+{#                            <img src="{% static 'img/fonticon/档案.png' %}" alt="通知设置">#}
+{#                            <h3>通知设置</h3>#}
+{#                        </div>#}
+{##}
+{#                        <div class="notification-item">#}
+{#                            <div>#}
+{#                                <h5>评论通知</h5>#}
+{#                                <p class="text-muted text-sm">当有人评论您的博客时收到通知</p>#}
+{#                            </div>#}
+{#                            <div class="form-check">#}
+{#                                <input class="form-check-input" type="checkbox" id="comment-notification" checked>#}
+{#                            </div>#}
+{#                        </div>#}
+{##}
+{#                        <div class="notification-item">#}
+{#                            <div>#}
+{#                                <h5>点赞通知</h5>#}
+{#                                <p class="text-muted text-sm">当有人点赞您的博客时收到通知</p>#}
+{#                            </div>#}
+{#                            <div class="form-check">#}
+{#                                <input class="form-check-input" type="checkbox" id="like-notification" checked>#}
+{#                            </div>#}
+{#                        </div>#}
+{##}
+{#                        <div class="form-group text-center mt-5">#}
+{#                            <button type="button" class="btn btn-warning">保存设置</button>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
         </div>
     </div>
 {% endblock %}
